@@ -1,0 +1,168 @@
+USED CAR MARKETPLACE – PROJECT REPORT
+1. PROJECT OVERVIEW
+
+Project Title: Used Car Marketplace System
+Tech Stack: MERN (MongoDB, Express, React, Node.js)
+
+The Used Car Marketplace is a web-based application designed to connect buyers and sellers of used cars on a single digital platform. The system allows users to list cars for sale, browse available vehicles, and contact sellers easily. It aims to make the used car buying and selling process more transparent, efficient, and user-friendly.
+
+2. PROBLEM STATEMENT
+
+Currently, buying and selling used cars is mostly done through dealers, classified ads, or word-of-mouth.
+
+Buyers face issues such as lack of accurate information, hidden costs, and difficulty comparing options.
+
+Sellers struggle to reach genuine buyers and often depend on middlemen who charge high commissions.
+
+There is no centralized platform to manage listings, verify details, and communicate efficiently.
+
+3. PROPOSED SOLUTION
+
+The proposed system is an online Used Car Marketplace where:
+
+Sellers can list their used cars with complete details and images.
+
+Buyers can browse, search, and filter cars based on their preferences.
+
+The admin manages users and listings to ensure quality and reliability.
+
+Direct communication between buyers and sellers reduces dependency on middlemen.
+
+4. USER ROLES & PERMISSIONS
+A. User (Buyer / Seller):
+
+Can Register and Login.
+
+Can Create and Manage Profile.
+
+Can Add Used Car Listings (Seller).
+
+Can Browse and Search Cars (Buyer).
+
+Can View Car Details and Contact Seller.
+
+Can View "My Listings" and "My Enquiries".
+
+B. Admin:
+
+Can Login to Secure Admin Dashboard.
+
+Can View and Manage Users.
+
+Can Approve, Edit, or Remove Car Listings.
+
+Can Monitor Platform Activities.
+
+Can Block Fraudulent or Inappropriate Listings.
+
+C. Price Recommendation Module:
+
+Suggests an estimated fair price for cars based on brand, model, year, and mileage.
+
+Helps sellers choose competitive prices.
+
+Builds buyer trust by showing market-based price insights.
+
+D. Favorites & Comparison Module:
+
+Allows buyers to save cars to a favorites list.
+
+Enables comparison of multiple cars based on price, mileage, year, and fuel type.
+
+Helps buyers make better purchasing decisions.
+
+Can Monitor Platform Activities.
+
+Can Block Fraudulent or Inappropriate Listings.
+
+5. DATABASE STRUCTURE (SCHEMAS)
+A. User Schema:
+
+Name (String)
+
+Email (String, Unique)
+
+Password (Hashed)
+
+PhoneNumber (String)
+
+Role (String: 'user' or 'admin')
+
+CreatedAt (Timestamp)
+
+B. Car Schema:
+
+Title (String, e.g., "Hyundai i20 Sportz")
+
+Brand (String)
+
+Model (String)
+
+Year (Number)
+
+Price (Number)
+
+Mileage (Number)
+
+FuelType (String: Petrol/Diesel/Electric)
+
+Transmission (String: Manual/Automatic)
+
+Location (String)
+
+Images (Array of Image URLs)
+
+SellerID (Reference to User)
+
+IsAvailable (Boolean, Default: true)
+
+CreatedAt (Timestamp)
+
+C. Enquiry Schema:
+
+CarID (Reference to Car)
+
+BuyerID (Reference to User)
+
+Message (String)
+
+Status (String: 'Sent', 'Responded', 'Closed')
+
+CreatedAt (Timestamp)
+
+6. FEATURE WORKFLOW (USER JOURNEY)
+
+Login: User registers or logs in to the system.
+
+Browse: User lands on the Home Page showing available used cars.
+
+Search & Filter: User filters cars by brand, price range, year, fuel type, or location.
+
+View Details: User clicks on a car to view full details and images.
+
+Enquiry: Buyer sends an enquiry to the seller.
+
+Database: The system stores enquiry details in MongoDB.
+
+Seller View: Seller checks enquiries in their dashboard.
+
+Response: Seller contacts buyer and proceeds with negotiation.
+7. API ENDPOINTS (The URL Rules)
+
+POST /api/auth/register → Create new user
+
+POST /api/auth/login → Login user
+
+GET /api/cars → Get list of used cars
+
+POST /api/cars → Create new car listing
+
+GET /api/cars/:id → Get car details
+
+PUT /api/cars/:id → Update car details (Owner/Admin)
+
+DELETE /api/cars/:id → Delete car listing (Admin only)
+
+POST /api/enquiries → Send enquiry to seller
+
+GET /api/enquiries/user → Get user enquiries
