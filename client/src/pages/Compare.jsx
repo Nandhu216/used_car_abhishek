@@ -30,7 +30,9 @@ export default function Compare() {
       setLoading(true);
       setError("");
       try {
-        const results = await Promise.all(ids.map((id) => apiFetch(`/cars/${id}`)));
+        const results = await Promise.all(
+          ids.map((id) => apiFetch(`/cars/${id}`))
+        );
         if (!ignore) setCars(results.map((r) => r.car));
       } catch (err) {
         if (!ignore) setError(err.message);
@@ -51,59 +53,71 @@ export default function Compare() {
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: "30px auto", padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0 }}>Compare cars</h2>
-        <div style={{ display: "flex", gap: 12 }}>
-          <button onClick={clear} disabled={ids.length === 0}>
+    <>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h4 mb-0">Compare cars</h1>
+        <div className="d-flex gap-2">
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm"
+            onClick={clear}
+            disabled={ids.length === 0}
+          >
             Clear
           </button>
-          <Link to="/">Back</Link>
+          <Link to="/" className="btn btn-outline-secondary btn-sm">
+            Back
+          </Link>
         </div>
       </div>
 
-      {loading ? <p>Loading...</p> : null}
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-      {!loading && !error && cars.length === 0 ? <p>No cars selected for comparison.</p> : null}
+      {loading && <p className="text-muted-app">Loading…</p>}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+      {!loading && !error && cars.length === 0 && (
+        <p className="text-muted-app">No cars selected. Add cars from the browse page to compare.</p>
+      )}
 
-      {cars.length ? (
-        <div style={{ overflowX: "auto", marginTop: 12 }}>
-          <table style={{ borderCollapse: "collapse", width: "100%" }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #0002" }}>
-                  Field
-                </th>
-                {cars.map((c) => (
-                  <th key={c._id} style={{ textAlign: "left", padding: 8, borderBottom: "1px solid #0002" }}>
-                    <Link to={`/cars/${c._id}`}>{c.title}</Link>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ["Price", (c) => `₹${c.price}`],
-                ["Year", (c) => c.year],
-                ["Mileage", (c) => `${c.mileage} km`],
-                ["Fuel", (c) => c.fuelType],
-                ["Transmission", (c) => c.transmission],
-                ["Location", (c) => c.location],
-              ].map(([label, fn]) => (
-                <tr key={label}>
-                  <td style={{ padding: 8, borderBottom: "1px solid #0001", opacity: 0.8 }}>{label}</td>
+      {cars.length > 0 && (
+        <div className="card overflow-hidden">
+          <div className="table-responsive">
+            <table className="table table-bordered mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th className="text-nowrap">Field</th>
                   {cars.map((c) => (
-                    <td key={c._id} style={{ padding: 8, borderBottom: "1px solid #0001" }}>
-                      {fn(c)}
-                    </td>
+                    <th key={c._id} className="text-nowrap">
+                      <Link to={`/cars/${c._id}`} className="text-decoration-none">
+                        {c.title}
+                      </Link>
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {[
+                  ["Price", (c) => `₹${c.price?.toLocaleString()}`],
+                  ["Year", (c) => c.year],
+                  ["Mileage", (c) => `${c.mileage} km`],
+                  ["Fuel", (c) => c.fuelType],
+                  ["Transmission", (c) => c.transmission],
+                  ["Location", (c) => c.location],
+                ].map(([label, fn]) => (
+                  <tr key={label}>
+                    <td className="text-muted-app text-nowrap">{label}</td>
+                    {cars.map((c) => (
+                      <td key={c._id}>{fn(c)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      ) : null}
-    </div>
+      )}
+    </>
   );
 }
-

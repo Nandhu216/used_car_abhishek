@@ -89,8 +89,14 @@ async function createCar(req, res, next) {
       fuelType,
       transmission,
       location,
+      numberOfOwners,
       images,
       isAvailable,
+      isAuction,
+      startingBid,
+      auctionEndDate,
+      deliveryAvailable,
+      deliveryCharge,
     } = req.body;
 
     const required = { title, brand, model, year, price, mileage, fuelType, transmission, location };
@@ -100,6 +106,11 @@ async function createCar(req, res, next) {
         throw new Error(`${k} is required`);
       }
     }
+
+    const ownersNum = toNumberOrUndefined(numberOfOwners);
+    const finalOwners = ownersNum !== undefined && ownersNum >= 1 ? ownersNum : 1;
+    const auction = Boolean(isAuction);
+    const startBid = toNumberOrUndefined(startingBid) || 0;
 
     const car = await Car.create({
       title: String(title).trim(),
@@ -111,9 +122,16 @@ async function createCar(req, res, next) {
       fuelType: String(fuelType).trim(),
       transmission: String(transmission).trim(),
       location: String(location).trim(),
+      numberOfOwners: finalOwners,
       images: Array.isArray(images) ? images.map((x) => String(x).trim()).filter(Boolean) : [],
       sellerId: req.user._id,
       isAvailable: isAvailable === undefined ? true : Boolean(isAvailable),
+      isAuction: auction,
+      startingBid: auction ? startBid : 0,
+      currentHighestBid: auction ? startBid : 0,
+      auctionEndDate: auction && auctionEndDate ? new Date(auctionEndDate) : null,
+      deliveryAvailable: Boolean(deliveryAvailable),
+      deliveryCharge: toNumberOrUndefined(deliveryCharge) || 0,
     });
 
     res.status(201).json({ ok: true, car });
@@ -147,8 +165,15 @@ async function updateCar(req, res, next) {
       "fuelType",
       "transmission",
       "location",
+      "numberOfOwners",
       "images",
       "isAvailable",
+      "isAuction",
+      "startingBid",
+      "currentHighestBid",
+      "auctionEndDate",
+      "deliveryAvailable",
+      "deliveryCharge",
     ];
 
     for (const key of updatable) {
@@ -157,10 +182,17 @@ async function updateCar(req, res, next) {
         car.images = Array.isArray(req.body.images)
           ? req.body.images.map((x) => String(x).trim()).filter(Boolean)
           : [];
-      } else if (["year", "price", "mileage"].includes(key)) {
-        car[key] = Number(req.body[key]);
-      } else if (key === "isAvailable") {
-        car.isAvailable = Boolean(req.body.isAvailable);
+      } else if (["year", "price", "mileage", "numberOfOwners", "startingBid", "currentHighestBid", "deliveryCharge"].includes(key)) {
+        const n = Number(req.body[key]);
+        if (key === "numberOfOwners") {
+          car.numberOfOwners = Number.isFinite(n) && n >= 1 ? n : 1;
+        } else if (Number.isFinite(n)) {
+          car[key] = n;
+        }
+      } else if (key === "auctionEndDate") {
+        car.auctionEndDate = req.body.auctionEndDate ? new Date(req.body.auctionEndDate) : null;
+      } else if (["isAvailable", "isAuction", "deliveryAvailable"].includes(key)) {
+        car[key] = Boolean(req.body[key]);
       } else {
         car[key] = String(req.body[key]).trim();
       }
@@ -197,5 +229,26 @@ async function getMyCars(req, res, next) {
   }
 }
 
-module.exports = { getCars, getCarById, createCar, updateCar, deleteCar, getMyCars };
+async function markAsSold(req, res, next) {
+  try {
+    const car = await Car.findById(req.params.id);
+    if (!car) {
+      res.status(404);
+      throw new Error("Car not found");
+    }
+    const isOwner = String(car.sellerId) === String(req.user._id);
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) {
+      res.status(403);
+      throw new Error("Not allowed");
+    }
+    car.isAvailable = false;
+    await car.save();
+    res.json({ ok: true, car });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getCars, getCarById, createCar, updateCar, deleteCar, getMyCars, markAsSold };
 

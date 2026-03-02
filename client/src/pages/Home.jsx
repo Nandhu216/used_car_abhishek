@@ -46,46 +46,62 @@ function CarCard({ car }) {
   }
 
   return (
-    <div style={{ border: "1px solid #0002", borderRadius: 8, padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-        <div>
-          <h3 style={{ margin: "0 0 6px" }}>{car.title}</h3>
-          <div style={{ opacity: 0.8, fontSize: 14 }}>
-            {car.brand} {car.model} • {car.year} • {car.fuelType} • {car.transmission}
+    <div className="card h-100">
+      <div className="card-body d-flex flex-column">
+        <div className="d-flex justify-content-between gap-3">
+          <div className="flex-grow-1 min-w-0">
+            <h3 className="h6 card-title mb-2 text-truncate">{car.title}</h3>
+            <p className="small text-muted-app mb-1">
+              {car.brand} {car.model} · {car.year} · {car.fuelType} · {car.transmission}
+            </p>
+            <p className="small mb-0">
+              <strong>₹{car.price?.toLocaleString()}</strong> · {car.mileage} km · {car.location}
+              {car.isAuction && <span className="badge bg-warning text-dark ms-1">Auction</span>}
+            </p>
           </div>
-          <div style={{ marginTop: 6 }}>
-            <b>₹{car.price}</b> • {car.mileage} km • {car.location}
-          </div>
+          {car.images?.[0] ? (
+            <img
+              src={car.images[0]}
+              alt={car.title}
+              className="rounded flex-shrink-0"
+              style={{ width: 120, height: 80, objectFit: "cover" }}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          ) : null}
         </div>
-        {car.images?.[0] ? (
-          <img
-            src={car.images[0]}
-            alt={car.title}
-            style={{ width: 140, height: 90, objectFit: "cover", borderRadius: 6 }}
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        ) : null}
-      </div>
-      <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <Link to={`/cars/${car._id}`}>View details</Link>
-        <button onClick={() => toggle(FAVORITES_KEY, fav, setFav)}>{fav ? "Unfavorite" : "Favorite"}</button>
-        <button onClick={() => toggle(COMPARE_KEY, cmp, setCmp, 4)}>{cmp ? "Remove compare" : "Compare"}</button>
-        <span style={{ opacity: 0.7, fontSize: 13 }}>
-          Seller: {car.sellerId?.name || "Unknown"}
-        </span>
+        <div className="mt-3 d-flex flex-wrap gap-2 align-items-center">
+          <Link to={`/cars/${car._id}`} className="btn btn-primary btn-sm">
+            View details
+          </Link>
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm"
+            onClick={() => toggle(FAVORITES_KEY, fav, setFav)}
+          >
+            {fav ? "Unfavorite" : "Favorite"}
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm"
+            onClick={() => toggle(COMPARE_KEY, cmp, setCmp, 4)}
+          >
+            {cmp ? "Remove compare" : "Compare"}
+          </button>
+          <span className="small text-muted-app ms-auto">
+            Seller: {car.sellerId?.name || "—"}
+          </span>
+        </div>
       </div>
     </div>
   );
 }
 
 export default function Home() {
-  const { isAuthed, isAdmin, user, logout } = useAuth();
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [q, setQ] = useState("");
   const [brand, setBrand] = useState("");
   const [fuelType, setFuelType] = useState("");
@@ -119,71 +135,59 @@ export default function Home() {
   }, [queryString]);
 
   return (
-    <div style={{ maxWidth: 980, margin: "30px auto", padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ margin: 0 }}>Used Car Marketplace</h1>
-          <div style={{ opacity: 0.8 }}>Browse listings and contact sellers.</div>
+    <>
+      <h1 className="h4 mb-4">Browse listings</h1>
+
+      <div className="row g-3 mb-4">
+        <div className="col-12 col-md-5">
+          <input
+            type="search"
+            className="form-control"
+            placeholder="Search (title, brand, model, location)"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
-
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          {!isAuthed ? (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
-            </>
-          ) : (
-            <>
-              <span style={{ opacity: 0.8 }}>
-                Hi, <b>{user?.name}</b> ({user?.role})
-              </span>
-              <Link to="/me">Profile</Link>
-              <Link to="/my-listings">My listings</Link>
-              <Link to="/my-enquiries">My enquiries</Link>
-              <Link to="/received-enquiries">Received enquiries</Link>
-              <Link to="/create-listing">Create listing</Link>
-              <Link to="/favorites">Favorites</Link>
-              <Link to="/compare">Compare</Link>
-              {isAdmin ? <Link to="/admin">Admin</Link> : null}
-              <button onClick={logout}>Logout</button>
-            </>
-          )}
+        <div className="col-6 col-md-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Brand"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+          />
         </div>
-      </div>
-
-      <div style={{ marginTop: 18, display: "grid", gap: 10, gridTemplateColumns: "2fr 1fr 1fr" }}>
-        <input
-          placeholder="Search (title/brand/model/location)"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          style={{ padding: 10 }}
-        />
-        <input
-          placeholder="Brand (e.g. Hyundai)"
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-          style={{ padding: 10 }}
-        />
-        <select value={fuelType} onChange={(e) => setFuelType(e.target.value)} style={{ padding: 10 }}>
-          <option value="">Any fuel</option>
-          <option value="Petrol">Petrol</option>
-          <option value="Diesel">Diesel</option>
-          <option value="Electric">Electric</option>
-        </select>
-      </div>
-
-      <div style={{ marginTop: 18 }}>
-        {loading ? <p>Loading cars...</p> : null}
-        {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-        {!loading && !error && cars.length === 0 ? <p>No cars found.</p> : null}
-
-        <div style={{ display: "grid", gap: 12 }}>
-          {cars.map((car) => (
-            <CarCard key={car._id} car={car} />
-          ))}
+        <div className="col-6 col-md-2">
+          <select
+            className="form-select"
+            value={fuelType}
+            onChange={(e) => setFuelType(e.target.value)}
+          >
+            <option value="">Any fuel</option>
+            <option value="Petrol">Petrol</option>
+            <option value="Diesel">Diesel</option>
+            <option value="Electric">Electric</option>
+          </select>
         </div>
       </div>
-    </div>
+
+      {loading && <p className="text-muted-app">Loading…</p>}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+      {!loading && !error && cars.length === 0 && (
+        <p className="text-muted-app">No cars found.</p>
+      )}
+
+      <div className="row g-3">
+        {cars.map((car) => (
+          <div key={car._id} className="col-12 col-sm-6 col-lg-4">
+            <CarCard car={car} />
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
-

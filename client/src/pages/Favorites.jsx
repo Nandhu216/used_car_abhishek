@@ -26,29 +26,42 @@ export default function Favorites() {
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: "30px auto", padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0 }}>Favorites</h2>
-        <div style={{ display: "flex", gap: 12 }}>
-          <button onClick={clear} disabled={ids.length === 0}>
-            Clear
+    <>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h4 mb-0">Favorites</h1>
+        <div className="d-flex gap-2">
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm"
+            onClick={clear}
+            disabled={ids.length === 0}
+          >
+            Clear all
           </button>
-          <Link to="/">Back</Link>
+          <Link to="/" className="btn btn-outline-secondary btn-sm">
+            Back
+          </Link>
         </div>
       </div>
 
       {ids.length === 0 ? (
-        <p style={{ marginTop: 12 }}>No favorites yet. Add some from Home.</p>
+        <p className="text-muted-app">No favorites yet. Add cars from the browse page.</p>
       ) : (
-        <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+        <div className="row g-3">
           {ids.map((id) => (
-            <div key={id} style={{ border: "1px solid #0002", borderRadius: 8, padding: 12 }}>
-              <b>Car ID:</b> {id} — <Link to={`/cars/${id}`}>Open</Link>
+            <div key={id} className="col-12 col-sm-6 col-md-4">
+              <div className="card">
+                <div className="card-body d-flex justify-content-between align-items-center">
+                  <span className="small text-muted-app font-monospace">Car listing</span>
+                  <Link to={`/cars/${id}`} className="btn btn-primary btn-sm">
+                    Open
+                  </Link>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }
-

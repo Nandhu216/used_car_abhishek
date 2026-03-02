@@ -5,6 +5,10 @@ const {
   deleteCar,
   setCarAvailability,
   listEnquiries,
+  listBids,
+  listPayments,
+  listDeliveries,
+  listDamageReports,
 } = require("../controllers/adminController");
 const { protect, requireAdmin } = require("../middleware/authMiddleware");
 
@@ -17,6 +21,10 @@ router.get("/cars", listCars);
 router.patch("/cars/:id/availability", setCarAvailability);
 router.delete("/cars/:id", deleteCar);
 router.get("/enquiries", listEnquiries);
+router.get("/bids", listBids);
+router.get("/payments", listPayments);
+router.get("/deliveries", listDeliveries);
+router.get("/damage-reports", listDamageReports);
 
 module.exports = router;
 

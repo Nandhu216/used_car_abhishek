@@ -26,13 +26,19 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(() => {
     const isAuthed = Boolean(token);
-    const isAdmin = user?.role === "admin";
+    const role = user?.role || null;
+    const isAdmin = role === "admin";
+    const isBuyer = role === "buyer";
+    const isSeller = role === "seller";
 
     return {
       token,
       user,
       isAuthed,
       isAdmin,
+      isBuyer,
+      isSeller,
+      role,
       login: ({ token: nextToken, user: nextUser }) => {
         setToken(nextToken || "");
         setUser(nextUser || null);

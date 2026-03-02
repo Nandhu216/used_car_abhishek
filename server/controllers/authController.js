@@ -15,11 +15,22 @@ function sanitizeUser(user) {
 
 async function register(req, res, next) {
   try {
-    const { name, email, password, phoneNumber } = req.body;
+    const { name, email, password, phoneNumber, role: roleInput } = req.body;
     if (!name || !email || !password) {
       res.status(400);
       throw new Error("name, email, and password are required");
     }
+
+    // Backward-compatible: older UI/backend used role="user"
+    const normalizedRole =
+      String(roleInput || "")
+        .trim()
+        .toLowerCase() === "user"
+        ? "buyer"
+        : String(roleInput || "").trim().toLowerCase();
+
+    const allowedRoles = ["buyer", "seller", "admin"];
+    const role = allowedRoles.includes(normalizedRole) ? normalizedRole : "buyer";
 
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
     if (existing) {
@@ -35,7 +46,7 @@ async function register(req, res, next) {
       email: email.toLowerCase().trim(),
       password: hashed,
       phoneNumber: phoneNumber ? String(phoneNumber).trim() : "",
-      role: "user",
+      role,
     });
 
     const token = generateToken({ id: user._id });
@@ -63,6 +74,12 @@ async function login(req, res, next) {
     if (!match) {
       res.status(401);
       throw new Error("Invalid email or password");
+    }
+
+    // Backward-compatible: migrate old role="user" to buyer
+    if (user.role === "user") {
+      user.role = "buyer";
+      await user.save();
     }
 
     const token = generateToken({ id: user._id });

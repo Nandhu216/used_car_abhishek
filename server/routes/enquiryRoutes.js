@@ -5,14 +5,15 @@ const {
   getReceivedEnquiries,
   updateEnquiryStatus,
 } = require("../controllers/enquiryController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, requireSeller } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.post("/", protect, createEnquiry);
 router.get("/user", protect, getMyEnquiries);
-router.get("/received", protect, getReceivedEnquiries);
-router.patch("/:id", protect, updateEnquiryStatus);
+router.get("/received", protect, requireSeller, getReceivedEnquiries);
+router.get("/seller", protect, requireSeller, getReceivedEnquiries);
+router.patch("/:id", protect, requireSeller, updateEnquiryStatus);
 
 module.exports = router;
 

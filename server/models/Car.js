@@ -19,9 +19,16 @@ const carSchema = new mongoose.Schema(
       enum: ["Manual", "Automatic"],
     },
     location: { type: String, required: true, trim: true },
+    numberOfOwners: { type: Number, default: 1, min: 1 },
     images: [{ type: String, trim: true }],
     sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     isAvailable: { type: Boolean, default: true },
+    isAuction: { type: Boolean, default: false },
+    startingBid: { type: Number, default: 0 },
+    currentHighestBid: { type: Number, default: 0 },
+    auctionEndDate: { type: Date, default: null },
+    deliveryAvailable: { type: Boolean, default: false },
+    deliveryCharge: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

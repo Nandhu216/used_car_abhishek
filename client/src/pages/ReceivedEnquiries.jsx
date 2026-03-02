@@ -27,7 +27,11 @@ export default function ReceivedEnquiries() {
   async function setStatus(id, status) {
     setError("");
     try {
-      await apiFetch(`/enquiries/${id}`, { method: "PATCH", auth: true, body: { status } });
+      await apiFetch(`/enquiries/${id}`, {
+        method: "PATCH",
+        auth: true,
+        body: { status },
+      });
       await load();
     } catch (err) {
       setError(err.message);
@@ -35,43 +39,71 @@ export default function ReceivedEnquiries() {
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: "30px auto", padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0 }}>Received enquiries</h2>
-        <Link to="/">Back</Link>
+    <>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h4 mb-0">Received enquiries</h1>
+        <Link to="/" className="btn btn-outline-secondary btn-sm">
+          Back
+        </Link>
       </div>
 
-      {loading ? <p>Loading...</p> : null}
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-      {!loading && !error && enquiries.length === 0 ? <p>No enquiries received.</p> : null}
+      {loading && <p className="text-muted-app">Loading…</p>}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+      {!loading && !error && enquiries.length === 0 && (
+        <p className="text-muted-app">No enquiries received yet.</p>
+      )}
 
-      <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+      <div className="row g-3">
         {enquiries.map((e) => (
-          <div key={e._id} style={{ border: "1px solid #0002", borderRadius: 8, padding: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <div>
-                <b>{e.carId?.title || "Car"}</b>
-                <div style={{ opacity: 0.8, fontSize: 14 }}>
-                  Buyer: {e.buyerId?.name} • {e.buyerId?.email}
-                  {e.buyerId?.phoneNumber ? ` • ${e.buyerId.phoneNumber}` : ""}
+          <div key={e._id} className="col-12">
+            <div className="card">
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                  <div>
+                    <h2 className="h6 card-title mb-1">{e.carId?.title || "Car"}</h2>
+                    <p className="small text-muted-app mb-1">
+                      Buyer: {e.buyerId?.name} · {e.buyerId?.email}
+                      {e.buyerId?.phoneNumber ? ` · ${e.buyerId.phoneNumber}` : ""}
+                    </p>
+                    <p className="small mb-0">
+                      Status: <span className="badge bg-secondary">{e.status}</span>
+                    </p>
+                  </div>
+                  <Link
+                    to={`/cars/${e.carId?._id}`}
+                    className="btn btn-outline-primary btn-sm"
+                  >
+                    View car
+                  </Link>
                 </div>
-                <div style={{ opacity: 0.8, fontSize: 14 }}>
-                  Status: <b>{e.status}</b>
+                <div className="mt-3 small text-break" style={{ whiteSpace: "pre-wrap" }}>
+                  {e.message}
+                </div>
+                <div className="mt-3 d-flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setStatus(e._id, "Responded")}
+                  >
+                    Mark responded
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setStatus(e._id, "Closed")}
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
-              <Link to={`/cars/${e.carId?._id}`}>View car</Link>
-            </div>
-
-            <div style={{ marginTop: 8, whiteSpace: "pre-wrap" }}>{e.message}</div>
-
-            <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button onClick={() => setStatus(e._id, "Responded")}>Mark Responded</button>
-              <button onClick={() => setStatus(e._id, "Closed")}>Close</button>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }
-

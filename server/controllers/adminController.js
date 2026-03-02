@@ -1,6 +1,10 @@
 const Car = require("../models/Car");
 const Enquiry = require("../models/Enquiry");
 const User = require("../models/User");
+const Bid = require("../models/Bid");
+const Payment = require("../models/Payment");
+const Delivery = require("../models/Delivery");
+const DamageReport = require("../models/DamageReport");
 
 async function listUsers(_req, res, next) {
   try {
@@ -66,5 +70,65 @@ async function listEnquiries(_req, res, next) {
   }
 }
 
-module.exports = { listUsers, listCars, deleteCar, setCarAvailability, listEnquiries };
+async function listBids(_req, res, next) {
+  try {
+    const bids = await Bid.find()
+      .populate("carId", "title brand model year price isAuction currentHighestBid")
+      .populate("buyerId", "name email phoneNumber")
+      .sort({ createdAt: -1 });
+    res.json({ ok: true, count: bids.length, bids });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listPayments(_req, res, next) {
+  try {
+    const payments = await Payment.find()
+      .populate("carId", "title brand model year price")
+      .populate("buyerId", "name email")
+      .populate("sellerId", "name email")
+      .sort({ createdAt: -1 });
+    res.json({ ok: true, count: payments.length, payments });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listDeliveries(_req, res, next) {
+  try {
+    const deliveries = await Delivery.find()
+      .populate("carId", "title brand model year price")
+      .populate("buyerId", "name email phoneNumber")
+      .populate("sellerId", "name email")
+      .sort({ createdAt: -1 });
+    res.json({ ok: true, count: deliveries.length, deliveries });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listDamageReports(_req, res, next) {
+  try {
+    const damageReports = await DamageReport.find()
+      .populate("carId", "title brand model year price")
+      .populate("buyerId", "name email phoneNumber")
+      .sort({ createdAt: -1 });
+    res.json({ ok: true, count: damageReports.length, damageReports });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  listUsers,
+  listCars,
+  deleteCar,
+  setCarAvailability,
+  listEnquiries,
+  listBids,
+  listPayments,
+  listDeliveries,
+  listDamageReports,
+};
 

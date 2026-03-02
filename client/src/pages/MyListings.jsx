@@ -6,6 +6,7 @@ export default function MyListings() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [marking, setMarking] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -27,41 +28,80 @@ export default function MyListings() {
     };
   }, []);
 
+  async function markAsSold(carId) {
+    setError("");
+    setMarking(carId);
+    try {
+      await apiFetch(`/cars/${carId}/sold`, { method: "PATCH", auth: true });
+      setCars((prev) => prev.map((c) => (c._id === carId ? { ...c, isAvailable: false } : c)));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setMarking(null);
+    }
+  }
+
   return (
-    <div style={{ maxWidth: 980, margin: "30px auto", padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0 }}>My listings</h2>
-        <div style={{ display: "flex", gap: 12 }}>
-          <Link to="/create-listing">Create listing</Link>
-          <Link to="/">Back</Link>
+    <>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h4 mb-0">My listings</h1>
+        <div className="d-flex gap-2">
+          <Link to="/create-listing" className="btn btn-primary btn-sm">
+            New listing
+          </Link>
+          <Link to="/" className="btn btn-outline-secondary btn-sm">
+            Back
+          </Link>
         </div>
       </div>
 
-      {loading ? <p>Loading...</p> : null}
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-      {!loading && !error && cars.length === 0 ? <p>No listings yet.</p> : null}
+      {loading && <p className="text-muted-app">Loading…</p>}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+      {!loading && !error && cars.length === 0 && (
+        <p className="text-muted-app">No listings yet. Create one to get started.</p>
+      )}
 
-      <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+      <div className="row g-3">
         {cars.map((c) => (
-          <div key={c._id} style={{ border: "1px solid #0002", borderRadius: 8, padding: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <div>
-                <b>{c.title}</b>
-                <div style={{ opacity: 0.8, fontSize: 14 }}>
-                  {c.brand} {c.model} • {c.year}
+          <div key={c._id} className="col-12 col-md-6 col-lg-4">
+            <div className="card h-100">
+              <div className="card-body d-flex flex-column">
+                <h2 className="h6 card-title mb-2">{c.title}</h2>
+                <p className="small text-muted-app mb-2">
+                  {c.brand} {c.model} · {c.year}
+                </p>
+                <p className="mb-3">
+                  <strong>₹{c.price?.toLocaleString()}</strong>
+                  {c.isAvailable ? (
+                    <span className="badge bg-success ms-2">Available</span>
+                  ) : (
+                    <span className="badge bg-secondary ms-2">Sold</span>
+                  )}
+                </p>
+                <div className="d-flex gap-1 mt-auto">
+                  <Link to={`/cars/${c._id}`} className="btn btn-outline-primary btn-sm">
+                    View
+                  </Link>
+                  {c.isAvailable && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-warning btn-sm"
+                      disabled={marking === c._id}
+                      onClick={() => markAsSold(c._id)}
+                    >
+                      {marking === c._id ? "…" : "Mark sold"}
+                    </button>
+                  )}
                 </div>
               </div>
-              <div>
-                <b>₹{c.price}</b>
-              </div>
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <Link to={`/cars/${c._id}`}>View</Link>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }
-

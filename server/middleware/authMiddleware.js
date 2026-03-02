@@ -33,5 +33,11 @@ function requireAdmin(req, res, next) {
   next(new Error("Admin access required"));
 }
 
-module.exports = { protect, requireAdmin };
+function requireSeller(req, res, next) {
+  if (req.user && (req.user.role === "seller" || req.user.role === "admin")) return next();
+  res.status(403);
+  next(new Error("Seller access required"));
+}
+
+module.exports = { protect, requireAdmin, requireSeller };
 
