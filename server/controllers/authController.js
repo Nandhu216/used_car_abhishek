@@ -89,5 +89,52 @@ async function login(req, res, next) {
   }
 }
 
-module.exports = { register, login };
+async function updateProfile(req, res, next) {
+  try {
+    const { name, phoneNumber } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+    if (name !== undefined && name !== null) user.name = String(name).trim();
+    if (phoneNumber !== undefined) user.phoneNumber = String(phoneNumber || "").trim();
+    await user.save();
+    res.json({ ok: true, user: sanitizeUser(user) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      res.status(400);
+      throw new Error("Current password and new password are required");
+    }
+    if (newPassword.length < 6) {
+      res.status(400);
+      throw new Error("New password must be at least 6 characters");
+    }
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) {
+      res.status(400);
+      throw new Error("Current password is incorrect");
+    }
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+    res.json({ ok: true, message: "Password updated" });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { register, login, updateProfile, changePassword };
 

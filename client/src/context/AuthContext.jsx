@@ -47,6 +47,9 @@ export function AuthProvider({ children }) {
         setToken("");
         setUser(null);
       },
+      updateUser: (nextUser) => {
+        if (nextUser) setUser(nextUser);
+      },
     };
   }, [token, user]);
 

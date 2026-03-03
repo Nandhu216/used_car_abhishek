@@ -82,20 +82,42 @@ export default function MyListings() {
                     <span className="badge bg-secondary ms-2">Sold</span>
                   )}
                 </p>
-                <div className="d-flex gap-1 mt-auto">
-                  <Link to={`/cars/${c._id}`} className="btn btn-outline-primary btn-sm">
-                    View
-                  </Link>
-                  {c.isAvailable && (
+                <div className="mt-auto">
+                  <div className="dropdown">
                     <button
+                      className="btn btn-outline-secondary btn-sm dropdown-toggle"
                       type="button"
-                      className="btn btn-outline-warning btn-sm"
-                      disabled={marking === c._id}
-                      onClick={() => markAsSold(c._id)}
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
                     >
-                      {marking === c._id ? "…" : "Mark sold"}
+                      Actions
                     </button>
-                  )}
+                    <ul className="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <Link to={`/cars/${c._id}`} className="dropdown-item">
+                          View
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to={`/my-listings/edit/${c._id}`} className="dropdown-item">
+                          Edit
+                        </Link>
+                      </li>
+                      {c.isAvailable && (
+                        <li>
+                          <hr className="dropdown-divider" />
+                          <button
+                            type="button"
+                            className="dropdown-item text-warning"
+                            disabled={marking === c._id}
+                            onClick={() => markAsSold(c._id)}
+                          >
+                            {marking === c._id ? "…" : "Mark sold"}
+                          </button>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
