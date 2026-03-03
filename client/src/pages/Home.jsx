@@ -105,14 +105,28 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [brand, setBrand] = useState("");
   const [fuelType, setFuelType] = useState("");
+  const [transmission, setTransmission] = useState("");
+  const [location, setLocation] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [minYear, setMinYear] = useState("");
+  const [maxYear, setMaxYear] = useState("");
+  const [isAvailable, setIsAvailable] = useState("");
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (brand) params.set("brand", brand);
     if (fuelType) params.set("fuelType", fuelType);
+    if (transmission) params.set("transmission", transmission);
+    if (location) params.set("location", location);
+    if (minPrice) params.set("minPrice", minPrice);
+    if (maxPrice) params.set("maxPrice", maxPrice);
+    if (minYear) params.set("minYear", minYear);
+    if (maxYear) params.set("maxYear", maxYear);
+    if (isAvailable) params.set("isAvailable", isAvailable);
     return params.toString();
-  }, [q, brand, fuelType]);
+  }, [q, brand, fuelType, transmission, location, minPrice, maxPrice, minYear, maxYear, isAvailable]);
 
   useEffect(() => {
     let ignore = false;
@@ -134,40 +148,174 @@ export default function Home() {
     };
   }, [queryString]);
 
+  const hasFilters = q || brand || fuelType || transmission || location || minPrice || maxPrice || minYear || maxYear || isAvailable;
+  function clearFilters() {
+    setQ("");
+    setBrand("");
+    setFuelType("");
+    setTransmission("");
+    setLocation("");
+    setMinPrice("");
+    setMaxPrice("");
+    setMinYear("");
+    setMaxYear("");
+    setIsAvailable("");
+  }
+
+  const activeCount = [q, brand, fuelType, transmission, location, minPrice, maxPrice, minYear, maxYear, isAvailable].filter(Boolean).length;
+
   return (
     <>
-      <h1 className="h4 mb-4">Browse listings</h1>
-
-      <div className="row g-3 mb-4">
-        <div className="col-12 col-md-5">
-          <input
-            type="search"
-            className="form-control"
-            placeholder="Search (title, brand, model, location)"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-        </div>
-        <div className="col-6 col-md-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Brand"
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-          />
-        </div>
-        <div className="col-6 col-md-2">
-          <select
-            className="form-select"
-            value={fuelType}
-            onChange={(e) => setFuelType(e.target.value)}
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h1 className="h4 mb-0">Browse listings</h1>
+        <div className="dropdown" data-bs-auto-close="outside">
+          <button
+            className="btn btn-outline-primary dropdown-toggle"
+            type="button"
+            id="browseFiltersDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
           >
-            <option value="">Any fuel</option>
-            <option value="Petrol">Petrol</option>
-            <option value="Diesel">Diesel</option>
-            <option value="Electric">Electric</option>
-          </select>
+            Filters
+            {activeCount > 0 && (
+              <span className="badge bg-primary ms-1">{activeCount}</span>
+            )}
+          </button>
+          <div
+            className="dropdown-menu dropdown-menu-end p-3 shadow-sm"
+            style={{ minWidth: "320px", maxWidth: "420px" }}
+            aria-labelledby="browseFiltersDropdown"
+          >
+            <h2 className="h6 mb-3">Filter by</h2>
+            <div className="d-flex flex-column gap-3">
+              <div>
+                <label className="form-label small text-muted mb-1">Search</label>
+                <input
+                  type="search"
+                  className="form-control form-control-sm"
+                  placeholder="Title, brand, model, location…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+              </div>
+              <div className="row g-2">
+                <div className="col-6">
+                  <label className="form-label small text-muted mb-1">Brand</label>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    placeholder="Any"
+                    value={brand}
+                    onChange={(e) => setBrand(e.target.value)}
+                  />
+                </div>
+                <div className="col-6">
+                  <label className="form-label small text-muted mb-1">Location</label>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    placeholder="Any"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="row g-2">
+                <div className="col-6">
+                  <label className="form-label small text-muted mb-1">Fuel type</label>
+                  <select
+                    className="form-select form-select-sm"
+                    value={fuelType}
+                    onChange={(e) => setFuelType(e.target.value)}
+                  >
+                    <option value="">Any</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="Electric">Electric</option>
+                  </select>
+                </div>
+                <div className="col-6">
+                  <label className="form-label small text-muted mb-1">Transmission</label>
+                  <select
+                    className="form-select form-select-sm"
+                    value={transmission}
+                    onChange={(e) => setTransmission(e.target.value)}
+                  >
+                    <option value="">Any</option>
+                    <option value="Manual">Manual</option>
+                    <option value="Automatic">Automatic</option>
+                  </select>
+                </div>
+              </div>
+              <div className="row g-2">
+                <div className="col-6">
+                  <label className="form-label small text-muted mb-1">Min price (₹)</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    placeholder="Min"
+                    min="0"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                  />
+                </div>
+                <div className="col-6">
+                  <label className="form-label small text-muted mb-1">Max price (₹)</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    placeholder="Max"
+                    min="0"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="row g-2">
+                <div className="col-6">
+                  <label className="form-label small text-muted mb-1">Min year</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    placeholder="e.g. 2015"
+                    value={minYear}
+                    onChange={(e) => setMinYear(e.target.value)}
+                  />
+                </div>
+                <div className="col-6">
+                  <label className="form-label small text-muted mb-1">Max year</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    placeholder="e.g. 2024"
+                    value={maxYear}
+                    onChange={(e) => setMaxYear(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="form-label small text-muted mb-1">Availability</label>
+                <select
+                  className="form-select form-control-sm"
+                  value={isAvailable}
+                  onChange={(e) => setIsAvailable(e.target.value)}
+                >
+                  <option value="">All</option>
+                  <option value="true">Available only</option>
+                  <option value="false">Sold only</option>
+                </select>
+              </div>
+              {hasFilters && (
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm align-self-start"
+                  onClick={clearFilters}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
