@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const navLinkClass = ({ isActive }) =>
@@ -47,9 +47,6 @@ export default function AdminLayout() {
           </NavLink>
         </nav>
         <div className="admin-sidebar-footer mt-auto">
-          <Link to="/" className="list-group-item list-group-item-action border-0 rounded mb-1">
-            ← Back to site
-          </Link>
           <div className="px-3 py-2 small text-muted">
             {user?.name} <span className="badge bg-secondary">{user?.role}</span>
           </div>

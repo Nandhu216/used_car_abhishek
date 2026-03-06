@@ -16,7 +16,12 @@ export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-md navbar-dark bg-primary shadow-sm">
       <div className="container">
-        <Link className="navbar-brand fw-semibold" to="/">
+        <Link
+          className="navbar-brand fw-semibold"
+          to={
+            !isAuthed ? "/" : isAdmin ? "/admin" : isSeller ? "/my-listings" : "/"
+          }
+        >
           Used Car Marketplace
         </Link>
         <button
@@ -47,32 +52,57 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <li className="nav-item">
-                  <NavLink to="/" end className={navLinkClass}>
-                    Browse
-                  </NavLink>
-                </li>
-                {/* Seller & Admin: Can create listings */}
-                {(isSeller || isAdmin) && (
+                {/* Buyer only: Browse, My Enquiries, My Bids, My Orders, Favorites, Compare */}
+                {isBuyer && (
                   <>
                     <li className="nav-item">
-                      <NavLink to="/create-listing" className={navLinkClass}>
-                        Sell
+                      <NavLink to="/" end className={navLinkClass}>
+                        Browse
                       </NavLink>
                     </li>
+                    <li className="nav-item">
+                      <NavLink to="/my-enquiries" className={navLinkClass}>
+                        My Enquiries
+                      </NavLink>
+                    </li>
+                    <li className="nav-item">
+                      <NavLink to="/my-bids" className={navLinkClass}>
+                        My Bids
+                      </NavLink>
+                    </li>
+                    <li className="nav-item">
+                      <NavLink to="/my-orders" className={navLinkClass}>
+                        My Orders
+                      </NavLink>
+                    </li>
+                    <li className="nav-item">
+                      <NavLink to="/favorites" className={navLinkClass}>
+                        Favorites
+                      </NavLink>
+                    </li>
+                    <li className="nav-item">
+                      <NavLink to="/compare" className={navLinkClass}>
+                        Compare
+                      </NavLink>
+                    </li>
+                  </>
+                )}
+                {/* Seller only: My Listings, Create listing, Received Enquiries, Deliveries, Damage */}
+                {isSeller && (
+                  <>
                     <li className="nav-item">
                       <NavLink to="/my-listings" className={navLinkClass}>
                         My Listings
                       </NavLink>
                     </li>
                     <li className="nav-item">
-                      <NavLink to="/received-enquiries" className={navLinkClass}>
-                        Enquiries
+                      <NavLink to="/create-listing" className={navLinkClass}>
+                        New listing
                       </NavLink>
                     </li>
                     <li className="nav-item">
-                      <NavLink to="/received-bids" className={navLinkClass}>
-                        Bids
+                      <NavLink to="/received-enquiries" className={navLinkClass}>
+                        Enquiries
                       </NavLink>
                     </li>
                     <li className="nav-item">
@@ -87,47 +117,7 @@ export default function Navbar() {
                     </li>
                   </>
                 )}
-                {/* All authenticated: Can send enquiries */}
-                <li className="nav-item">
-                  <NavLink to="/my-enquiries" className={navLinkClass}>
-                    My Enquiries
-                  </NavLink>
-                </li>
-                {(isBuyer || isSeller) && (
-                  <>
-                    <li className="nav-item">
-                      <NavLink to="/my-bids" className={navLinkClass}>
-                        My Bids
-                      </NavLink>
-                    </li>
-                    <li className="nav-item">
-                      <NavLink to="/my-orders" className={navLinkClass}>
-                        My Orders
-                      </NavLink>
-                    </li>
-                  </>
-                )}
-                {/* Buyer & Seller: Favorites & Compare */}
-                {(isBuyer || isSeller) && (
-                  <>
-                    <li className="nav-item">
-                      <NavLink to="/favorites" className={navLinkClass}>
-                        Favorites
-                      </NavLink>
-                    </li>
-                    <li className="nav-item">
-                      <NavLink to="/compare" className={navLinkClass}>
-                        Compare
-                      </NavLink>
-                    </li>
-                  </>
-                )}
-                <li className="nav-item">
-                  <NavLink to="/me" className={navLinkClass}>
-                    Profile
-                  </NavLink>
-                </li>
-                {/* Admin: Admin dashboard */}
+                {/* Admin (on main site): only Admin link */}
                 {isAdmin && (
                   <li className="nav-item">
                     <NavLink to="/admin" className={navLinkClass}>
@@ -135,6 +125,11 @@ export default function Navbar() {
                     </NavLink>
                   </li>
                 )}
+                <li className="nav-item">
+                  <NavLink to="/me" className={navLinkClass}>
+                    Profile
+                  </NavLink>
+                </li>
                 <li className="nav-item dropdown">
                   <button
                     className="btn btn-link nav-link dropdown-toggle text-white text-decoration-none d-flex align-items-center"

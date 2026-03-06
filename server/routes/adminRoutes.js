@@ -1,6 +1,8 @@
 const express = require("express");
 const {
   listUsers,
+  updateUser,
+  deleteUser,
   listCars,
   deleteCar,
   setCarAvailability,
@@ -17,6 +19,8 @@ const router = express.Router();
 router.use(protect, requireAdmin);
 
 router.get("/users", listUsers);
+router.put("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 router.get("/cars", listCars);
 router.patch("/cars/:id/availability", setCarAvailability);
 router.delete("/cars/:id", deleteCar);
