@@ -11,9 +11,9 @@ async function createPayment(req, res, next) {
       installmentMonths,
     } = req.body;
 
-    if (!carId || !totalAmount) {
+    if (!carId) {
       res.status(400);
-      throw new Error("carId and totalAmount are required");
+      throw new Error("carId is required");
     }
 
     const car = await Car.findById(carId);
@@ -26,7 +26,44 @@ async function createPayment(req, res, next) {
       throw new Error("Seller cannot create payment for own car");
     }
 
-    const total = Number(totalAmount);
+    // Prevent duplicate payments for the same buyer+car
+    const existing = await Payment.findOne({ carId: car._id, buyerId: req.user._id });
+    if (existing) {
+      res.status(400);
+      throw new Error("Payment already exists for this car");
+    }
+
+    let expectedTotal = car.price;
+    if (car.isAuction) {
+      // Auction payments only allowed for the winning bidder (accepted bid)
+      if (!car.acceptedBidId || !car.soldTo) {
+        res.status(400);
+        throw new Error("Auction payment is not available until a bid is accepted");
+      }
+      if (String(car.soldTo) !== String(req.user._id)) {
+        res.status(403);
+        throw new Error("Only the accepted bidder can create payment for this auction");
+      }
+      expectedTotal = Number(car.soldPrice || 0);
+      if (!Number.isFinite(expectedTotal) || expectedTotal <= 0) {
+        res.status(400);
+        throw new Error("Invalid auction final price");
+      }
+    }
+
+    if (totalAmount !== undefined && totalAmount !== null && String(totalAmount) !== "") {
+      const provided = Number(totalAmount);
+      if (!Number.isFinite(provided)) {
+        res.status(400);
+        throw new Error("totalAmount must be a number");
+      }
+      if (provided !== expectedTotal) {
+        res.status(400);
+        throw new Error("totalAmount does not match the payable amount");
+      }
+    }
+
+    const total = expectedTotal;
     const down = Number(downPayment) || 0;
     const months = Number(installmentMonths) || 0;
     const isInstallment = paymentType === "Installment" && months > 0;

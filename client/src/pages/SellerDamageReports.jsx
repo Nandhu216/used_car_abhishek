@@ -78,7 +78,7 @@ export default function SellerDamageReports() {
                 {r.status === "Pending" && (
                   <>
                     {responding === r._id ? (
-                      <div className="border rounded p-2 bg-light">
+                      <div className="border rounded p-2" style={{ borderColor: "var(--ad-border)", background: "rgba(255,255,255,0.04)" }}>
                         <select
                           className="form-select form-select-sm mb-2"
                           value={responseStatus}

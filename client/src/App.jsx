@@ -31,6 +31,15 @@ function MarketplaceLayout() {
   return (
     <>
       <Navbar />
+      <Outlet />
+    </>
+  );
+}
+
+function PageLayout() {
+  return (
+    <>
+      <Navbar />
       <main className="container py-4">
         <Outlet />
       </main>
@@ -298,11 +307,16 @@ function ProfilePage() {
 export default function App() {
   return (
     <Routes>
+      {/* Home page: full-width layout (for hero section) */}
       <Route element={<MarketplaceLayout />}>
         <Route path="/" element={<Home />} />
+      </Route>
+      {/* Auth pages: full-page layout, no navbar */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      {/* Other pages: container layout */}
+      <Route element={<PageLayout />}>
         <Route path="/cars/:id" element={<CarDetails />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route element={<RequireAuth />}>
           <Route path="/me" element={<ProfilePage />} />
           <Route path="/my-enquiries" element={<MyEnquiries />} />

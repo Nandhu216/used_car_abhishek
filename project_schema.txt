@@ -1,0 +1,202 @@
+================================================================================
+USED CAR MARKETPLACE SYSTEM - DATABASE SCHEMA
+================================================================================
+This document lists all collections (tables) and their fields as implemented
+in the project (MongoDB with Mongoose). All collections use timestamps:
+createdAt, updatedAt (added automatically by Mongoose).
+
+================================================================================
+
+
+--------------------------------------------------------------------------------
+TABLE 1: users
+--------------------------------------------------------------------------------
+Stores registered users (Buyer, Seller, Admin) and authentication data.
+
+| Field Name   | Data Type | Constraints                    | Required | Description                                    |
+|--------------|-----------|--------------------------------|----------|------------------------------------------------|
+| _id          | ObjectId  | Primary Key, Auto-generated    | Yes      | Unique identifier for the user                 |
+| name         | String    | trim                           | Yes      | Full name of the user                          |
+| email        | String    | unique, lowercase, trim        | Yes      | Login email; must be unique across users      |
+| password     | String    | -                              | Yes      | Hashed password (e.g. bcrypt)                 |
+| phoneNumber  | String    | trim, default: ""              | No       | Contact phone number                           |
+| role         | String    | enum: buyer, seller, admin     | No       | User role; defaults to "buyer"                |
+| createdAt    | Date      | Auto-generated                 | Yes      | When the user was created                      |
+| updatedAt    | Date      | Auto-generated                 | Yes      | When the user was last updated                 |
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+TABLE 2: cars
+--------------------------------------------------------------------------------
+Stores vehicle listings created by sellers. Supports fixed price and auction.
+
+| Field Name        | Data Type   | Constraints                         | Required | Description                                   |
+|-------------------|-------------|-------------------------------------|----------|-----------------------------------------------|
+| _id               | ObjectId    | Primary Key, Auto-generated         | Yes      | Unique identifier for the car listing          |
+| title             | String      | trim                                | Yes      | Listing title                                 |
+| brand             | String      | trim                                | Yes      | Car brand (e.g. Toyota, Honda)                 |
+| model             | String      | trim                                | Yes      | Car model                                     |
+| year              | Number      | -                                   | Yes      | Manufacturing year                            |
+| price             | Number      | -                                   | Yes      | Listing/fixed price (₹)                       |
+| mileage           | Number      | -                                   | Yes      | Odometer reading (km)                          |
+| fuelType          | String      | enum: Petrol, Diesel, Electric      | Yes      | Fuel type                                     |
+| transmission      | String      | enum: Manual, Automatic             | Yes      | Transmission type                             |
+| location          | String      | trim                                | Yes      | Location of the vehicle                        |
+| numberOfOwners    | Number      | default: 1, min: 1                  | No       | Number of previous owners                     |
+| images            | Array       | Array of Strings (URLs), trim       | No       | Image URLs for the car                        |
+| sellerId          | ObjectId    | ref: User                           | Yes      | Reference to the user who listed the car      |
+| isAvailable       | Boolean     | default: true                        | No       | Whether the car is still available for sale    |
+| isAuction         | Boolean     | default: false                       | No       | Whether the listing is in auction mode        |
+| startingBid       | Number      | default: 0                          | No       | Starting bid amount (₹) when auction enabled  |
+| currentHighestBid | Number      | default: 0                          | No       | Current highest bid amount                    |
+| auctionEndDate    | Date        | default: null                        | No       | When the auction ends                         |
+| acceptedBidId      | ObjectId    | ref: Bid, default: null             | No       | Bid accepted by seller (winner)                |
+| soldTo            | ObjectId    | ref: User, default: null            | No       | Buyer who won the auction / purchased         |
+| soldPrice         | Number      | default: 0                          | No       | Final sale price (e.g. accepted bid amount)   |
+| deliveryAvailable | Boolean     | default: false                       | No       | Whether delivery is offered                   |
+| deliveryCharge    | Number      | default: 0                          | No       | Delivery charge (₹)                           |
+| createdAt         | Date        | Auto-generated                      | Yes      | When the listing was created                  |
+| updatedAt         | Date        | Auto-generated                      | Yes      | When the listing was last updated             |
+
+Index: Text index on title, brand, model, location (for search).
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+TABLE 3: bids
+--------------------------------------------------------------------------------
+Stores bids placed by buyers on auction-enabled cars.
+
+| Field Name | Data Type | Constraints                          | Required | Description                          |
+|------------|-----------|--------------------------------------|----------|--------------------------------------|
+| _id        | ObjectId  | Primary Key, Auto-generated          | Yes      | Unique identifier for the bid        |
+| carId      | ObjectId  | ref: Car                             | Yes      | Car being bid on                     |
+| buyerId    | ObjectId  | ref: User                            | Yes      | User who placed the bid             |
+| bidAmount  | Number    | -                                    | Yes      | Bid amount (₹)                      |
+| status     | String    | enum: Pending, Accepted, Rejected    | No       | Default "Pending"; set by seller     |
+| createdAt  | Date      | Auto-generated                       | Yes      | When the bid was placed             |
+| updatedAt  | Date      | Auto-generated                       | Yes      | When the bid was last updated       |
+
+Index: Compound index on carId (asc), createdAt (desc).
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+TABLE 4: enquiries
+--------------------------------------------------------------------------------
+Stores enquiries/messages from buyers to sellers about a car.
+
+| Field Name | Data Type | Constraints                    | Required | Description                          |
+|------------|-----------|--------------------------------|----------|--------------------------------------|
+| _id        | ObjectId  | Primary Key, Auto-generated    | Yes      | Unique identifier for the enquiry   |
+| carId      | ObjectId  | ref: Car                       | Yes      | Car the enquiry is about            |
+| buyerId    | ObjectId  | ref: User                      | Yes      | User who sent the enquiry           |
+| sellerId   | ObjectId  | ref: User                      | Yes      | Seller of the car                   |
+| message    | String    | trim                           | Yes      | Enquiry message text                |
+| status     | String    | enum: Sent, Responded, Closed   | No       | Default "Sent"; updated by seller   |
+| createdAt  | Date      | Auto-generated                 | Yes      | When the enquiry was sent           |
+| updatedAt  | Date      | Auto-generated                 | Yes      | When the enquiry was last updated   |
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+TABLE 5: payments
+--------------------------------------------------------------------------------
+Stores payment records (full or installment/EMI) for a car purchase.
+
+| Field Name        | Data Type | Constraints                      | Required | Description                           |
+|-------------------|-----------|----------------------------------|----------|---------------------------------------|
+| _id               | ObjectId  | Primary Key, Auto-generated      | Yes      | Unique identifier for the payment     |
+| carId             | ObjectId  | ref: Car                         | Yes      | Car being paid for                   |
+| buyerId           | ObjectId  | ref: User                        | Yes      | User making the payment              |
+| sellerId          | ObjectId  | ref: User                        | Yes      | Seller receiving the payment         |
+| totalAmount       | Number    | -                                | Yes      | Total payable amount (₹)              |
+| downPayment       | Number    | default: 0                       | No       | Down payment amount (₹) for EMI      |
+| remainingAmount   | Number    | default: 0                       | No       | Amount left after down payment       |
+| installmentMonths | Number    | default: 0                       | No       | Number of EMI months                 |
+| monthlyAmount     | Number    | default: 0                       | No       | EMI amount per month (₹)             |
+| paymentType       | String    | enum: Full, Installment          | No       | Default "Full"                        |
+| paymentStatus     | String    | enum: Pending, Ongoing, Completed| No       | Default "Pending"; seller/admin update|
+| createdAt         | Date      | Auto-generated                   | Yes      | When the payment was created         |
+| updatedAt         | Date      | Auto-generated                   | Yes      | When the payment was last updated    |
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+TABLE 6: deliveries
+--------------------------------------------------------------------------------
+Stores delivery requests and status (Pickup or Home Delivery).
+
+| Field Name      | Data Type | Constraints                    | Required | Description                          |
+|-----------------|-----------|--------------------------------|----------|--------------------------------------|
+| _id             | ObjectId  | Primary Key, Auto-generated    | Yes      | Unique identifier for the delivery  |
+| carId           | ObjectId  | ref: Car                       | Yes      | Car being delivered                 |
+| buyerId         | ObjectId  | ref: User                      | Yes      | User requesting delivery            |
+| sellerId        | ObjectId  | ref: User                      | Yes      | Seller fulfilling delivery          |
+| deliveryType    | String    | enum: Pickup, HomeDelivery      | Yes      | Onsite pickup or home delivery      |
+| deliveryAddress | String    | trim, default: ""             | No       | Address for home delivery           |
+| deliveryStatus  | String    | enum: Pending, Shipped, Delivered| No       | Default "Pending"; seller/admin update|
+| createdAt       | Date      | Auto-generated                 | Yes      | When the delivery was requested     |
+| updatedAt       | Date      | Auto-generated                 | Yes      | When the delivery was last updated  |
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+TABLE 7: damagereports
+--------------------------------------------------------------------------------
+Stores damage reports from buyers and seller responses (price reduction).
+
+| Field Name              | Data Type | Constraints                          | Required | Description                          |
+|-------------------------|-----------|--------------------------------------|----------|--------------------------------------|
+| _id                     | ObjectId  | Primary Key, Auto-generated          | Yes      | Unique identifier for the report     |
+| carId                   | ObjectId  | ref: Car                             | Yes      | Car the report is about             |
+| buyerId                 | ObjectId  | ref: User                            | Yes      | User who reported the damage        |
+| description             | String    | trim                                 | Yes      | Description of the damage            |
+| damageImages            | Array     | Array of Strings (URLs), trim         | No       | Optional image URLs of damage        |
+| requestedReductionAmount| Number    | -                                    | Yes      | Amount (₹) buyer wants reduced       |
+| status                  | String    | enum: Pending, Accepted, Rejected, Countered | No | Default "Pending"; seller response  |
+| finalAgreedPrice        | Number    | default: null                        | No       | Agreed price after negotiation      |
+| sellerResponse          | String    | trim, default: ""                    | No       | Seller's reply or comment           |
+| createdAt               | Date      | Auto-generated                       | Yes      | When the report was submitted       |
+| updatedAt               | Date      | Auto-generated                       | Yes      | When the report was last updated     |
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+ENTITY RELATIONSHIPS (REFERENCES)
+================================================================================
+
+  users (_id)
+    ^
+    |-- cars.sellerId
+    |-- cars.soldTo
+    |-- bids.buyerId
+    |-- enquiries.buyerId, enquiries.sellerId
+    |-- payments.buyerId, payments.sellerId
+    |-- deliveries.buyerId, deliveries.sellerId
+    |-- damagereports.buyerId
+
+  cars (_id)
+    ^
+    |-- bids.carId
+    |-- enquiries.carId
+    |-- payments.carId
+    |-- deliveries.carId
+    |-- damagereports.carId
+    |-- cars.acceptedBidId -> bids._id
+
+  bids (_id)
+    ^
+    |-- cars.acceptedBidId
+
+================================================================================
+END OF SCHEMA DOCUMENT
+================================================================================

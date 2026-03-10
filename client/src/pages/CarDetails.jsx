@@ -55,42 +55,69 @@ export default function CarDetails() {
     return () => { ignore = true; };
   }, [car?._id, car?.isAuction]);
 
-  if (loading) return <p className="text-muted-app">Loading…</p>;
+  if (loading) return <p className="text-muted-app py-4">Loading…</p>;
   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!car) return <p className="text-muted-app">Car not found.</p>;
+  if (!car) return <p className="text-muted-app py-4">Car not found.</p>;
+
+  const userId = user?.id || user?._id || null;
+  const isSeller = String(car.sellerId?._id) === String(userId);
+  const isAuctionWinner =
+    Boolean(car.isAuction) &&
+    Boolean(car.acceptedBidId) &&
+    Boolean(car.soldTo) &&
+    String(car.soldTo) === String(userId);
+  const canBid = car.isAuction && isAuthed && !isSeller && car.isAvailable;
+  const canPay =
+    isAuthed &&
+    isBuyer &&
+    !isSeller &&
+    (car.isAuction ? isAuctionWinner : car.isAvailable);
+  const payableAmount =
+    car.isAuction && isAuctionWinner ? Number(car.soldPrice || 0) : Number(car.price || 0);
 
   return (
     <>
       <Link to="/" className="btn btn-outline-secondary btn-sm mb-3">
-        ← Back to listings
+        <i className="bi bi-arrow-left me-1" />Back to listings
       </Link>
 
       <div className="card mb-4">
         <div className="card-body">
-          <h1 className="h4 card-title mb-2">{car.title}</h1>
-          <p className="small text-muted-app mb-2">
-            {car.brand} {car.model} · {car.year} · {car.fuelType} · {car.transmission}
-          </p>
-          <p className="mb-2">
-            <strong>₹{car.price?.toLocaleString()}</strong> · {car.mileage} km · {car.location}
+          <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+            <div>
+              <h1 className="h4 mb-1">{car.title}</h1>
+              <p className="small text-muted-app mb-0">
+                {car.brand} {car.model} · {car.year} · {car.fuelType} · {car.transmission}
+              </p>
+            </div>
+            <div className="text-end">
+              <div style={{ color: "var(--ad-orange)", fontSize: "1.5rem", fontWeight: 700 }}>
+                ₹{(car.isAuction && isAuctionWinner && car.soldPrice ? car.soldPrice : car.price)?.toLocaleString()}
+              </div>
+            </div>
+          </div>
+          <div className="d-flex flex-wrap gap-2 mb-3">
+            <span className="badge bg-secondary"><i className="bi bi-speedometer2 me-1" />{car.mileage?.toLocaleString()} km</span>
+            <span className="badge bg-secondary"><i className="bi bi-geo-alt me-1" />{car.location}</span>
             {car.numberOfOwners != null && (
-              <> · {car.numberOfOwners === 1 ? "1st" : car.numberOfOwners === 2 ? "2nd" : `${car.numberOfOwners}th`} owner</>
+              <span className="badge bg-secondary"><i className="bi bi-people me-1" />{car.numberOfOwners === 1 ? "1st" : car.numberOfOwners === 2 ? "2nd" : `${car.numberOfOwners}th`} owner</span>
             )}
-            {car.isAuction && (
-              <span className="badge bg-warning text-dark ms-2">Auction</span>
-            )}
-            {car.deliveryAvailable && (
-              <span className="badge bg-info ms-1">Delivery · ₹{car.deliveryCharge?.toLocaleString()}</span>
-            )}
-          </p>
+            {car.isAuction && <span className="badge bg-warning">Auction</span>}
+            {car.deliveryAvailable && <span className="badge bg-info"><i className="bi bi-truck me-1" />Delivery · ₹{car.deliveryCharge?.toLocaleString()}</span>}
+          </div>
           {car.isAuction && (
-            <p className="small text-muted-app mb-0">
+            <p className="small text-muted-app mb-2">
               Starting bid: ₹{car.startingBid?.toLocaleString()} · Current highest: ₹{(car.currentHighestBid ?? car.startingBid)?.toLocaleString()}
               {car.auctionEndDate && ` · Ends: ${new Date(car.auctionEndDate).toLocaleString()}`}
+              {car.acceptedBidId && (
+                <span className="badge bg-success ms-2">
+                  {isAuctionWinner ? "You won" : "Bid accepted"}
+                </span>
+              )}
             </p>
           )}
-          <p className="small mb-0">
-            Seller: <strong>{car.sellerId?.name}</strong> · {car.sellerId?.email}
+          <p className="small text-muted-app mb-0">
+            <i className="bi bi-person me-1" />Seller: <strong style={{ color: "var(--ad-text)" }}>{car.sellerId?.name}</strong> · {car.sellerId?.email}
             {car.sellerId?.phoneNumber ? ` · ${car.sellerId.phoneNumber}` : ""}
           </p>
         </div>
@@ -104,16 +131,14 @@ export default function CarDetails() {
               src={src}
               alt="Car"
               className="rounded"
-              style={{ width: 220, height: 140, objectFit: "cover" }}
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
+              style={{ width: 260, height: 170, objectFit: "cover", border: "1px solid rgba(255,255,255,0.08)" }}
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
             />
           ))}
         </div>
       )}
 
-      {car.isAuction && isAuthed && String(car.sellerId?._id) !== String(user?.id) && car.isAvailable && (
+      {canBid && (
         <div className="card mb-4">
           <div className="card-body">
             <h2 className="h6 mb-3">Place bid</h2>
@@ -219,11 +244,20 @@ export default function CarDetails() {
         </div>
       </div>
 
-      {isAuthed && isBuyer && String(car.sellerId?._id) !== String(user?.id) && car.isAvailable && (
+      {isAuthed && isBuyer && !isSeller && car.isAuction && !isAuctionWinner && !car.isAvailable && (
+        <div className="alert alert-info small mb-4" role="alert">
+          This auction listing already has an accepted bid. Only the accepted bidder can proceed with payment.
+        </div>
+      )}
+
+      {canPay && (
         <>
           <div className="card mb-4">
             <div className="card-body">
               <h2 className="h6 mb-3">Payment &amp; delivery</h2>
+              <p className="small text-muted-app mb-2">
+                Payable amount: <strong>₹{payableAmount?.toLocaleString()}</strong>
+              </p>
               {!showPayment ? (
                 <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => setShowPayment(true)}>
                   Proceed to payment / delivery
@@ -276,7 +310,7 @@ export default function CarDetails() {
                             auth: true,
                             body: {
                               carId: car._id,
-                              totalAmount: car.price,
+                              totalAmount: payableAmount,
                               paymentType,
                               downPayment: paymentType === "Installment" ? Number(downPayment) : 0,
                               installmentMonths: paymentType === "Installment" ? Number(installmentMonths) : 0,

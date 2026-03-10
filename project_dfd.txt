@@ -1,0 +1,487 @@
+================================================================================
+USED CAR MARKETPLACE SYSTEM - DATA FLOW DIAGRAMS (DFD)
+================================================================================
+This file contains Mermaid diagram code for DFD Level 0, Level 1, and
+Level 1.1 through 1.n. Copy each Mermaid block into a Mermaid-supported viewer
+(e.g. GitHub, Mermaid Live Editor, VS Code Mermaid extension) to render.
+
+Notation:
+  [External Entity]  (Process)  [(Data Store)]  -->|Flow label|
+================================================================================
+
+
+--------------------------------------------------------------------------------
+DFD LEVEL 0 - CONTEXT DIAGRAM (ENTIRE SYSTEM AS ONE PROCESS)
+--------------------------------------------------------------------------------
+Shows the Used Car Marketplace System as a single process with external
+entities (Buyer, Seller, Admin) and high-level data flows.
+
+```mermaid
+flowchart LR
+    subgraph External Entities
+        Buyer[Buyer]
+        Seller[Seller]
+        Admin[Admin]
+    end
+
+    System((Used Car Marketplace System))
+
+    Buyer -->|Registration, Login, Profile| System
+    Buyer -->|Search/Filter, Favorites, Compare| System
+    Buyer -->|Enquiries, Bids, Payment Choice, Delivery Choice| System
+    Buyer -->|Damage Reports, My Bids/Orders/Enquiries| System
+    System -->|Car Listings, Confirmations, Order Status| Buyer
+
+    Seller -->|Registration, Login, Profile| System
+    Seller -->|Add/Edit Listings, Images, Auction Mode| System
+    Seller -->|View Enquiries, Accept/Reject Bids| System
+    Seller -->|Manage Delivery, Respond to Damage, Mark Sold| System
+    System -->|Enquiries, Bids, Notifications| Seller
+
+    Admin -->|Login| System
+    Admin -->|Manage Users, Listings, Bids, Payments, Delivery, Damage Reports| System
+    Admin -->|Approve/Edit/Remove Listings, Block Users| System
+    System -->|Dashboard, Reports, Status| Admin
+```
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+DFD LEVEL 1 - FIRST DECOMPOSITION (MAJOR PROCESSES)
+--------------------------------------------------------------------------------
+Breaks the system into main processes and data stores.
+
+```mermaid
+flowchart TB
+    subgraph External
+        Buyer[Buyer]
+        Seller[Seller]
+        Admin[Admin]
+    end
+
+    subgraph Processes
+        P1(1.0 Authentication)
+        P2(2.0 Car Listing Management)
+        P3(3.0 Bidding)
+        P4(4.0 Enquiry Management)
+        P5(5.0 Payment Management)
+        P6(6.0 Delivery Management)
+        P7(7.0 Damage Report Management)
+        P8(8.0 Admin Management)
+    end
+
+    subgraph Data Stores
+        D1[(D1 Users)]
+        D2[(D2 Cars)]
+        D3[(D3 Bids)]
+        D4[(D4 Enquiries)]
+        D5[(D5 Payments)]
+        D6[(D6 Deliveries)]
+        D7[(D7 Damage Reports)]
+    end
+
+    Buyer -->|Credentials, Profile| P1
+    Seller -->|Credentials, Profile| P1
+    Admin -->|Credentials| P1
+    P1 -->|Token, User| Buyer
+    P1 -->|Token, User| Seller
+    P1 -->|Token, User| Admin
+    P1 --> D1
+    D1 --> P1
+
+    Seller -->|Car Details, Images, Auction| P2
+    P2 -->|Car List| Buyer
+    P2 -->|Car List| P3
+    P2 --> D2
+    D2 --> P2
+    Admin -->|Edit/Remove Listing| P2
+    P2 --> D2
+
+    Buyer -->|Bid Amount| P3
+    P3 --> D3
+    D3 --> P3
+    P3 -->|Bid Status| Buyer
+    Seller -->|Accept/Reject| P3
+    P3 --> D2
+    D2 --> P3
+
+    Buyer -->|Message| P4
+    P4 --> D4
+    D4 --> P4
+    P4 -->|Enquiry List| Seller
+    P4 -->|Enquiry List| Buyer
+    Seller -->|Status Update| P4
+
+    Buyer -->|Payment Type, Amount| P5
+    P5 --> D5
+    D5 --> P5
+    P5 -->|Payment Status| Buyer
+    Seller -->|Approve/Update Status| P5
+    P5 --> D5
+
+    Buyer -->|Delivery Type, Address| P6
+    P6 --> D6
+    D6 --> P6
+    P6 -->|Delivery Status| Buyer
+    Seller -->|Update Delivery Status| P6
+
+    Buyer -->|Description, Reduction Request| P7
+    P7 --> D7
+    D7 --> P7
+    P7 -->|Report Status| Buyer
+    Seller -->|Accept/Reject/Counter| P7
+
+    Admin -->|Manage Request| P8
+    P8 --> D1
+    P8 --> D2
+    P8 --> D3
+    P8 --> D4
+    P8 --> D5
+    P8 --> D6
+    P8 --> D7
+    D1 --> P8
+    D2 --> P8
+    D3 --> P8
+    D4 --> P8
+    D5 --> P8
+    D6 --> P8
+    D7 --> P8
+    P8 -->|Reports, Updated Data| Admin
+```
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+DFD LEVEL 1.1 - AUTHENTICATION MODULE (ALL ROLES)
+--------------------------------------------------------------------------------
+Registration, Login, Profile for Buyer, Seller, and Admin.
+
+```mermaid
+flowchart TB
+    subgraph External
+        Buyer[Buyer]
+        Seller[Seller]
+        Admin[Admin]
+    end
+
+    subgraph Authentication Process
+        P1_1(1.1 Register)
+        P1_2(1.2 Login)
+        P1_3(1.3 Update Profile)
+        P1_4(1.4 Change Password)
+    end
+
+    D1[(D1 Users)]
+
+    Buyer -->|Name, Email, Password, Role| P1_1
+    Seller -->|Name, Email, Password, Role| P1_1
+    Admin -->|Name, Email, Password, Role| P1_1
+    P1_1 --> D1
+    P1_1 -->|Success/Error| Buyer
+    P1_1 -->|Success/Error| Seller
+    P1_1 -->|Success/Error| Admin
+
+    Buyer -->|Email, Password| P1_2
+    Seller -->|Email, Password| P1_2
+    Admin -->|Email, Password| P1_2
+    D1 --> P1_2
+    P1_2 -->|Token, User, Role| Buyer
+    P1_2 -->|Token, User, Role| Seller
+    P1_2 -->|Token, User, Role| Admin
+
+    Buyer -->|Name, Phone| P1_3
+    Seller -->|Name, Phone| P1_3
+    Admin -->|Name, Phone| P1_3
+    D1 --> P1_3
+    P1_3 --> D1
+    P1_3 -->|Updated User| Buyer
+    P1_3 -->|Updated User| Seller
+    P1_3 -->|Updated User| Admin
+
+    Buyer -->|Current Password, New Password| P1_4
+    Seller -->|Current Password, New Password| P1_4
+    Admin -->|Current Password, New Password| P1_4
+    D1 --> P1_4
+    P1_4 --> D1
+    P1_4 -->|Success/Error| Buyer
+    P1_4 -->|Success/Error| Seller
+    P1_4 -->|Success/Error| Admin
+```
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+DFD LEVEL 1.2 - BUYER MODULE
+--------------------------------------------------------------------------------
+Browse, Search, Filter, Favorites, Compare, Enquiries, Bids, Payments, Delivery, Damage Reports.
+
+```mermaid
+flowchart TB
+    Buyer[Buyer]
+
+    subgraph Buyer Processes
+        P2_1(2.1 Browse & Search Cars)
+        P2_2(2.2 Manage Favorites & Compare)
+        P2_3(2.3 Send Enquiry)
+        P2_4(2.4 Place Bid)
+        P2_5(2.5 Create Payment / EMI)
+        P2_6(2.6 Request Delivery)
+        P2_7(2.7 Submit Damage Report)
+        P2_8(2.8 View My Bids / Orders / Enquiries)
+    end
+
+    D2[(D2 Cars)]
+    D3[(D3 Bids)]
+    D4[(D4 Enquiries)]
+    D5[(D5 Payments)]
+    D6[(D6 Deliveries)]
+    D7[(D7 Damage Reports)]
+
+    Buyer -->|Search, Filters| P2_1
+    D2 --> P2_1
+    P2_1 -->|Car List, Car Details| Buyer
+
+    Buyer -->|Add/Remove Favorites, Add to Compare| P2_2
+    P2_2 -->|Favorites List, Compare View| Buyer
+
+    Buyer -->|Car ID, Message| P2_3
+    P2_3 --> D4
+    P2_3 -->|Confirmation| Buyer
+
+    Buyer -->|Car ID, Bid Amount| P2_4
+    D2 --> P2_4
+    P2_4 --> D3
+    P2_4 --> D2
+    P2_4 -->|Bid Status| Buyer
+
+    Buyer -->|Car ID, Payment Type, Amount, Down, Months| P2_5
+    D2 --> P2_5
+    P2_5 --> D5
+    P2_5 -->|Payment Confirmation| Buyer
+
+    Buyer -->|Car ID, Type, Address| P2_6
+    P2_6 --> D6
+    P2_6 -->|Delivery Confirmation| Buyer
+
+    Buyer -->|Car ID, Description, Reduction Amount| P2_7
+    P2_7 --> D7
+    P2_7 -->|Report Confirmation| Buyer
+
+    D3 --> P2_8
+    D5 --> P2_8
+    D4 --> P2_8
+    P2_8 -->|My Bids, My Orders, My Enquiries| Buyer
+```
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+DFD LEVEL 1.3 - SELLER MODULE
+--------------------------------------------------------------------------------
+Listings, Auction, Enquiries, Bids, Delivery, Damage Response, Mark Sold.
+
+```mermaid
+flowchart TB
+    Seller[Seller]
+
+    subgraph Seller Processes
+        P3_1(3.1 Add / Edit Car Listing)
+        P3_2(3.2 Enable Auction Mode)
+        P3_3(3.3 View & Manage Listings)
+        P3_4(3.4 View Buyer Enquiries)
+        P3_5(3.5 Accept / Reject Bids)
+        P3_6(3.6 Manage Delivery Requests)
+        P3_7(3.7 Respond to Damage Reports)
+        P3_8(3.8 Mark Car as Sold)
+    end
+
+    D2[(D2 Cars)]
+    D3[(D3 Bids)]
+    D4[(D4 Enquiries)]
+    D5[(D5 Payments)]
+    D6[(D6 Deliveries)]
+    D7[(D7 Damage Reports)]
+
+    Seller -->|Car Details, Images| P3_1
+    P3_1 --> D2
+    P3_1 -->|Listing Created/Updated| Seller
+
+    Seller -->|Starting Bid, End Date| P3_2
+    D2 --> P3_2
+    P3_2 --> D2
+    P3_2 -->|Auction Enabled| Seller
+
+    D2 --> P3_3
+    P3_3 -->|My Listings| Seller
+    Seller -->|Edit, Mark Sold| P3_3
+    P3_3 --> D2
+
+    D4 --> P3_4
+    P3_4 -->|Enquiry List| Seller
+    Seller -->|Status Update| P3_4
+    P3_4 --> D4
+
+    D3 --> P3_5
+    Seller -->|Accept / Reject| P3_5
+    P3_5 --> D3
+    P3_5 --> D2
+    P3_5 -->|Bid Result| Seller
+
+    D6 --> P3_6
+    P3_6 -->|Delivery List| Seller
+    Seller -->|Update Status: Shipped/Delivered| P3_6
+    P3_6 --> D6
+
+    D7 --> P3_7
+    P3_7 -->|Damage Reports List| Seller
+    Seller -->|Accept / Reject / Counter| P3_7
+    P3_7 --> D7
+
+    Seller -->|Car ID| P3_8
+    D2 --> P3_8
+    P3_8 --> D2
+    P3_8 -->|Sold Confirmation| Seller
+```
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+DFD LEVEL 1.4 - ADMIN MODULE
+--------------------------------------------------------------------------------
+User Management, Listing Management, Monitor Bids/Payments/Deliveries/Damage, Reports.
+
+```mermaid
+flowchart TB
+    Admin[Admin]
+
+    subgraph Admin Processes
+        P4_1(4.1 View & Manage Users)
+        P4_2(4.2 Approve / Edit / Remove Listings)
+        P4_3(4.3 Monitor Bidding Activities)
+        P4_4(4.4 Monitor Payments & Installments)
+        P4_5(4.5 Manage Delivery Status)
+        P4_6(4.6 Manage Damage Reports)
+        P4_7(4.7 View Platform Reports)
+    end
+
+    D1[(D1 Users)]
+    D2[(D2 Cars)]
+    D3[(D3 Bids)]
+    D4[(D4 Enquiries)]
+    D5[(D5 Payments)]
+    D6[(D6 Deliveries)]
+    D7[(D7 Damage Reports)]
+
+    Admin -->|Edit User, Delete User| P4_1
+    D1 --> P4_1
+    P4_1 --> D1
+    P4_1 -->|User List, Updated/Deleted| Admin
+
+    Admin -->|Edit Listing, Delete Listing, Toggle Availability| P4_2
+    D2 --> P4_2
+    P4_2 --> D2
+    P4_2 -->|Listing List, Status| Admin
+
+    D3 --> P4_3
+    P4_3 -->|Bids List| Admin
+
+    D5 --> P4_4
+    Admin -->|Update Payment Status| P4_4
+    P4_4 --> D5
+    P4_4 -->|Payments List| Admin
+
+    D6 --> P4_5
+    Admin -->|Update Delivery Status| P4_5
+    P4_5 --> D6
+    P4_5 -->|Deliveries List| Admin
+
+    D7 --> P4_6
+    P4_6 -->|Damage Reports List| Admin
+
+    D1 --> P4_7
+    D2 --> P4_7
+    D3 --> P4_7
+    D4 --> P4_7
+    D5 --> P4_7
+    D6 --> P4_7
+    D7 --> P4_7
+    P4_7 -->|Overview, Counts, Reports| Admin
+```
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+DFD LEVEL 1.5 - CAR LISTING & BIDDING (CROSS-ROLE DATA FLOW)
+--------------------------------------------------------------------------------
+Shows how Car and Bid data flows between Buyer and Seller.
+
+```mermaid
+flowchart LR
+    subgraph Buyer Side
+        B1[Browse/Search]
+        B2[Place Bid]
+        B3[Pay for Won Bid]
+    end
+
+    subgraph Seller Side
+        S1[Add Listing]
+        S2[Enable Auction]
+        S3[Accept/Reject Bid]
+    end
+
+    D2[(Cars)]
+    D3[(Bids)]
+
+    S1 --> D2
+    S2 --> D2
+    D2 --> B1
+    B2 --> D3
+    D3 --> S3
+    S3 --> D2
+    S3 --> D3
+    D2 --> B3
+```
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+DFD LEVEL 1.6 - PAYMENT & DELIVERY FLOW (BUYER-SELLER)
+--------------------------------------------------------------------------------
+Payment creation by Buyer, status updates by Seller/Admin; Delivery request and status.
+
+```mermaid
+flowchart TB
+    Buyer[Buyer]
+    Seller[Seller]
+    Admin[Admin]
+
+    P_Pay(Create Payment/EMI)
+    P_Del(Request Delivery)
+    P_UpdatePay(Update Payment Status)
+    P_UpdateDel(Update Delivery Status)
+
+    D5[(D5 Payments)]
+    D6[(D6 Deliveries)]
+
+    Buyer -->|Payment Type, Amount, Down, Months| P_Pay
+    P_Pay --> D5
+    P_Pay -->|Confirmation| Buyer
+
+    Buyer -->|Type, Address| P_Del
+    P_Del --> D6
+    P_Del -->|Confirmation| Buyer
+
+    D5 --> P_UpdatePay
+    Seller -->|Status| P_UpdatePay
+    Admin -->|Status| P_UpdatePay
+    P_UpdatePay --> D5
+
+    D6 --> P_UpdateDel
+    Seller -->|Shipped/Delivered| P_UpdateDel
+    Admin -->|Status| P_UpdateDel
+    P_UpdateDel --> D6
+```
+--------------------------------------------------------------------------------
+
+END OF PROJECT DFD
+================================================================================

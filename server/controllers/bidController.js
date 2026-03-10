@@ -27,8 +27,17 @@ async function placeBid(req, res, next) {
       throw new Error("You cannot bid on your own listing");
     }
 
+    // Rule: the same buyer cannot place two consecutive bids.
+    // They can bid again only after another buyer places a higher bid.
+    const currentTopBid = await Bid.findOne({ carId: car._id }).sort({ bidAmount: -1, createdAt: -1 });
+    if (currentTopBid && String(currentTopBid.buyerId) === String(req.user._id)) {
+      res.status(400);
+      throw new Error("You cannot place two bids in a row. Wait for another buyer to outbid you.");
+    }
+
     const amount = Number(bidAmount);
-    if (!Number.isFinite(amount) || amount <= (car.currentHighestBid || car.startingBid)) {
+    const currentMin = Math.max(Number(car.currentHighestBid || 0), Number(car.startingBid || 0));
+    if (!Number.isFinite(amount) || amount <= currentMin) {
       res.status(400);
       throw new Error("Bid must be higher than current highest");
     }
@@ -114,8 +123,26 @@ async function acceptRejectBid(req, res, next) {
     await bid.save();
 
     if (status === "Accepted") {
+      if (!bid.carId.isAuction) {
+        res.status(400);
+        throw new Error("Cannot accept bid: car is not in auction mode");
+      }
+      if (!bid.carId.isAvailable) {
+        res.status(400);
+        throw new Error("Cannot accept bid: car is not available");
+      }
+
       bid.carId.isAvailable = false;
+      bid.carId.acceptedBidId = bid._id;
+      bid.carId.soldTo = bid.buyerId;
+      bid.carId.soldPrice = bid.bidAmount;
       await bid.carId.save();
+
+      // Reject any other pending bids for this car
+      await Bid.updateMany(
+        { carId: bid.carId._id, _id: { $ne: bid._id }, status: "Pending" },
+        { $set: { status: "Rejected" } }
+      );
     }
 
     res.json({ ok: true, bid });
