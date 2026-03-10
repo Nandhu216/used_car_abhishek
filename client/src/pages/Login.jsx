@@ -14,7 +14,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -122,27 +121,6 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <div className="form-check">
-                <input
-                  id="remember-me"
-                  type="checkbox"
-                  className="form-check-input"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="form-check-label small"
-                >
-                  Remember me
-                </label>
-              </div>
-              <Link to="#" className="small text-decoration-none">
-                Recover Password
-              </Link>
-            </div>
-
             <button
               type="submit"
               className="btn btn-primary w-100 ad-auth-btn"
@@ -152,23 +130,7 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="ad-auth-divider">
-            <span>Or</span>
-          </div>
-
-          <div className="ad-auth-social">
-            <button type="button" className="ad-auth-social-btn">
-              <i className="bi bi-google" /> Sign Up with Google
-            </button>
-            <button type="button" className="ad-auth-social-btn">
-              <i className="bi bi-facebook" /> Sign Up with Facebook
-            </button>
-            <button type="button" className="ad-auth-social-btn">
-              <i className="bi bi-twitter" /> Sign Up with Twitter
-            </button>
-          </div>
-
-          <p className="ad-auth-switch">
+          <p className="ad-auth-switch mt-4">
             Don&apos;t have an account?{" "}
             <Link to="/register">Register</Link>
           </p>
