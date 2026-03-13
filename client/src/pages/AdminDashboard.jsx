@@ -119,75 +119,35 @@ export default function AdminDashboard() {
       {loading && <p className="text-muted-app">Loading…</p>}
 
       {active === "overview" && !loading && (
-        <div className="row g-3 mb-4">
-          <div className="col-6 col-md-4 col-lg-2">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body py-3">
-                <h2 className="h6 text-muted-app mb-0">Users</h2>
-                <p className="h4 mb-0">{users.length}</p>
-                <Link to="/admin/users" className="small text-primary">View</Link>
+        <>
+          <div className="row g-3 mb-4">
+            {[
+              { label: "Users", count: users.length, icon: "bi-people", color: "orange", to: "/admin/users" },
+              { label: "Listings", count: cars.length, icon: "bi-car-front", color: "blue", to: "/admin/cars", action: "Manage" },
+              { label: "Enquiries", count: enquiries.length, icon: "bi-chat-left-text", color: "green", to: "/admin/enquiries" },
+              { label: "Bids", count: bids.length, icon: "bi-hammer", color: "yellow", to: "/admin/bids" },
+              { label: "Payments", count: payments.length, icon: "bi-credit-card", color: "purple", to: "/admin/payments" },
+              { label: "Deliveries", count: deliveries.length, icon: "bi-truck", color: "teal", to: "/admin/deliveries" },
+              { label: "Damage", count: damageReports.length, icon: "bi-exclamation-triangle", color: "red", to: "/admin/damage-reports" },
+            ].map((s) => (
+              <div key={s.label} className="col-6 col-md-4 col-xl-3">
+                <div className="admin-stat-card">
+                  <div className={`admin-stat-icon ${s.color}`}>
+                    <i className={`bi ${s.icon}`} />
+                  </div>
+                  <div className="admin-stat-body">
+                    <h2>{s.label}</h2>
+                    <div className="admin-stat-value">{s.count}</div>
+                    <Link to={s.to}>{s.action || "View"} &rarr;</Link>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-          <div className="col-6 col-md-4 col-lg-2">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body py-3">
-                <h2 className="h6 text-muted-app mb-0">Listings</h2>
-                <p className="h4 mb-0">{cars.length}</p>
-                <Link to="/admin/cars" className="small text-primary">Manage</Link>
-              </div>
-            </div>
-          </div>
-          <div className="col-6 col-md-4 col-lg-2">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body py-3">
-                <h2 className="h6 text-muted-app mb-0">Enquiries</h2>
-                <p className="h4 mb-0">{enquiries.length}</p>
-                <Link to="/admin/enquiries" className="small text-primary">View</Link>
-              </div>
-            </div>
-          </div>
-          <div className="col-6 col-md-4 col-lg-2">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body py-3">
-                <h2 className="h6 text-muted-app mb-0">Bids</h2>
-                <p className="h4 mb-0">{bids.length}</p>
-                <Link to="/admin/bids" className="small text-primary">View</Link>
-              </div>
-            </div>
-          </div>
-          <div className="col-6 col-md-4 col-lg-2">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body py-3">
-                <h2 className="h6 text-muted-app mb-0">Payments</h2>
-                <p className="h4 mb-0">{payments.length}</p>
-                <Link to="/admin/payments" className="small text-primary">View</Link>
-              </div>
-            </div>
-          </div>
-          <div className="col-6 col-md-4 col-lg-2">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body py-3">
-                <h2 className="h6 text-muted-app mb-0">Deliveries</h2>
-                <p className="h4 mb-0">{deliveries.length}</p>
-                <Link to="/admin/deliveries" className="small text-primary">View</Link>
-              </div>
-            </div>
-          </div>
-          <div className="col-6 col-md-4 col-lg-2">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body py-3">
-                <h2 className="h6 text-muted-app mb-0">Damage</h2>
-                <p className="h4 mb-0">{damageReports.length}</p>
-                <Link to="/admin/damage-reports" className="small text-primary">View</Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {active === "overview" && !loading && (
-        <p className="text-muted-app small">Use the sidebar to manage users, listings, enquiries, bids, payments, deliveries, and damage reports.</p>
+          <p className="text-muted-app small">
+            Use the sidebar to manage users, listings, enquiries, bids, payments, deliveries, and damage reports.
+          </p>
+        </>
       )}
 
       {active === "users" && !loading && (

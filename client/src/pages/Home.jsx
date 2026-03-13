@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 
 const FAVORITES_KEY = "favorites";
 const COMPARE_KEY = "compare";
-const BODY_TYPES = ["All", "SUV", "Hatchback", "Sedan", "MUV", "Luxury"];
 
 function loadIds(key) {
   try {
@@ -22,7 +21,18 @@ function saveIds(key, ids) {
 }
 
 /* ── Hero Section ── */
-function HeroSection({ featuredCar }) {
+function HeroSection({ cars }) {
+  const [index, setIndex] = useState(0);
+  const total = cars.length;
+  const featuredCar = cars[index] || null;
+
+  function goPrev() {
+    setIndex((i) => (i - 1 + total) % total);
+  }
+  function goNext() {
+    setIndex((i) => (i + 1) % total);
+  }
+
   return (
     <section className="ad-hero">
       <div className="container">
@@ -84,22 +94,13 @@ function HeroSection({ featuredCar }) {
                 <i className="bi bi-car-front-fill" />
               </div>
             )}
-            {/* Side action buttons */}
-            <div className="ad-hero-actions d-none d-xl-flex">
-              <div className="ad-hero-action-btn">
-                <span>Discover<br />More</span>
-                <div className="ad-hero-action-icon"><i className="bi bi-plus" /></div>
-              </div>
-              <div className="ad-hero-action-btn">
-                <span>Explore<br />Details</span>
-                <div className="ad-hero-action-icon"><i className="bi bi-eye" /></div>
-              </div>
-            </div>
             {/* Nav arrows */}
-            <div className="ad-hero-nav">
-              <button className="ad-hero-arrow"><i className="bi bi-chevron-left" /></button>
-              <button className="ad-hero-arrow"><i className="bi bi-chevron-right" /></button>
-            </div>
+            {total > 1 && (
+              <div className="ad-hero-nav">
+                <button className="ad-hero-arrow" onClick={goPrev}><i className="bi bi-chevron-left" /></button>
+                <button className="ad-hero-arrow" onClick={goNext}><i className="bi bi-chevron-right" /></button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -108,14 +109,15 @@ function HeroSection({ featuredCar }) {
 }
 
 /* ── Car Card (new design) ── */
-function CarCard({ car }) {
+function CarCard({ car, showActions }) {
   const [fav, setFav] = useState(false);
   const [cmp, setCmp] = useState(false);
 
   useEffect(() => {
+    if (!showActions) return;
     setFav(loadIds(FAVORITES_KEY).includes(car._id));
     setCmp(loadIds(COMPARE_KEY).includes(car._id));
-  }, [car._id]);
+  }, [car._id, showActions]);
 
   function toggle(key, current, setter, max) {
     const ids = loadIds(key);
@@ -151,23 +153,25 @@ function CarCard({ car }) {
             <i className="bi bi-images" /> {car.images.length}
           </div>
         )}
-        {/* Hover action buttons */}
-        <div className="ad-car-actions">
-          <button
-            className={`ad-car-action-btn ${cmp ? "active" : ""}`}
-            title={cmp ? "Remove from compare" : "Compare"}
-            onClick={(e) => { e.preventDefault(); toggle(COMPARE_KEY, cmp, setCmp, 4); }}
-          >
-            <i className="bi bi-arrow-left-right" />
-          </button>
-          <button
-            className={`ad-car-action-btn ${fav ? "active" : ""}`}
-            title={fav ? "Remove from favorites" : "Add to favorites"}
-            onClick={(e) => { e.preventDefault(); toggle(FAVORITES_KEY, fav, setFav); }}
-          >
-            <i className={fav ? "bi bi-heart-fill" : "bi bi-heart"} />
-          </button>
-        </div>
+        {/* Hover action buttons (buyers only) */}
+        {showActions && (
+          <div className="ad-car-actions">
+            <button
+              className={`ad-car-action-btn ${cmp ? "active" : ""}`}
+              title={cmp ? "Remove from compare" : "Compare"}
+              onClick={(e) => { e.preventDefault(); toggle(COMPARE_KEY, cmp, setCmp, 4); }}
+            >
+              <i className="bi bi-arrow-left-right" />
+            </button>
+            <button
+              className={`ad-car-action-btn ${fav ? "active" : ""}`}
+              title={fav ? "Remove from favorites" : "Add to favorites"}
+              onClick={(e) => { e.preventDefault(); toggle(FAVORITES_KEY, fav, setFav); }}
+            >
+              <i className={fav ? "bi bi-heart-fill" : "bi bi-heart"} />
+            </button>
+          </div>
+        )}
       </div>
       {/* Body */}
       <div className="ad-car-body">
@@ -191,6 +195,7 @@ function CarCard({ car }) {
 
 /* ── Home Page ── */
 export default function Home() {
+  const { isBuyer } = useAuth();
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -205,7 +210,6 @@ export default function Home() {
   const [maxYear, setMaxYear] = useState("");
   const [isAvailable, setIsAvailable] = useState("");
   const [category, setCategory] = useState("all");
-  const [bodyType, setBodyType] = useState("All");
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -249,28 +253,18 @@ export default function Home() {
 
   const activeCount = [q, brand, fuelType, transmission, location, minPrice, maxPrice, minYear, maxYear, isAvailable].filter(Boolean).length;
 
-  /* Client-side filtering for category pills and body-type tabs */
+  /* Client-side filtering for category pills */
   const filteredCars = useMemo(() => {
     let result = cars;
     if (category === "auction") result = result.filter((c) => c.isAuction);
     else if (category === "regular") result = result.filter((c) => !c.isAuction);
-    if (bodyType !== "All") {
-      const bt = bodyType.toLowerCase();
-      result = result.filter((c) =>
-        (c.bodyType || "").toLowerCase() === bt ||
-        (c.brand || "").toLowerCase().includes(bt) ||
-        (c.title || "").toLowerCase().includes(bt)
-      );
-    }
     return result;
-  }, [cars, category, bodyType]);
-
-  const featuredCar = cars[0] || null;
+  }, [cars, category]);
 
   return (
     <>
       {/* Hero */}
-      <HeroSection featuredCar={featuredCar} />
+      <HeroSection cars={cars} />
 
       {/* Category Pills */}
       <div className="ad-category-pills">
@@ -281,20 +275,9 @@ export default function Home() {
 
       {/* Main content area */}
       <div className="ad-section-container">
-        {/* Type Tabs + Filter button row */}
-        <div className="d-flex justify-content-between align-items-end flex-wrap gap-2">
-          <div className="ad-type-tabs" style={{ borderBottom: "none", marginBottom: 0, paddingBottom: "0.5rem" }}>
-            {BODY_TYPES.map((t) => (
-              <button
-                key={t}
-                className={`ad-type-tab ${bodyType === t ? "active" : ""}`}
-                onClick={() => setBodyType(t)}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-          <div className="dropdown mb-2" data-bs-auto-close="outside">
+        {/* Filter button row */}
+        <div className="d-flex justify-content-end flex-wrap gap-2 mb-2">
+          <div className="dropdown" data-bs-auto-close="outside">
             <button
               className="btn btn-outline-primary btn-sm dropdown-toggle"
               type="button"
@@ -391,7 +374,7 @@ export default function Home() {
         <div className="row g-3 pb-4">
           {filteredCars.map((car) => (
             <div key={car._id} className="col-12 col-sm-6 col-lg-4 col-xl-3">
-              <CarCard car={car} />
+              <CarCard car={car} showActions={isBuyer} />
             </div>
           ))}
         </div>
